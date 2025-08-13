@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist de Documentos</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --success-color: #4caf50;
+            --pending-color: #ff9800;
+            --error-color: #f44336;
+            --background-color: #f5f7fa;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --light-text: #777777;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .client-info {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 20px;
+            margin: 20px 0;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--success-color);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 20px;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .checklist-item {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .checklist-item:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .checklist-item.completed {
+            border-left-color: var(--success-color);
+            background-color: rgba(76, 175, 80, 0.05);
+        }
+
+        .checklist-item.pending {
+            border-left-color: var(--pending-color);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .item-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-container {
+            position: relative;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+        }
+
+        .checkbox-container input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: #eee;
+            border-radius: 4px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .checkbox-container:hover .checkmark {
+            background-color: #ddd;
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--success-color);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status.completed {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--success-color);
+        }
+
+        .status.pending {
+            background-color: rgba(255, 152, 0, 0.2);
+            color: var(--pending-color);
+        }
+
+        .comments-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .comments-section.expanded {
+            max-height: 200px;
+            margin-top: 10px;
+        }
+
+        .comments-label {
+            font-size: 14px;
+            color: var(--light-text);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .comments-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 60px;
+            font-size: 14px;
+        }
+
+        .comments-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+        }
+
+        .save-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .save-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .toggle-comments {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-top: 5px;
+            padding: 0;
+        }
+
+        .toggle-comments:hover {
+            color: var(--secondary-color);
+        }
+
+        .summary {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: none;
+        }
+
+        .summary h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .summary-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-item-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .summary-item-comment {
+            color: var(--light-text);
+            font-size: 14px;
+            margin-left: 10px;
+            font-style: italic;
+        }
+
+        .no-comment {
+            color: #999;
+            font-style: italic;
+        }
+
+        .generate-summary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px auto;
+            display: block;
+            transition: background-color 0.3s;
+        }
+
+        .generate-summary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--light-text);
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .item-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .status {
+                align-self: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Checklist de Documentos</h1>
+            <p>Marque os itens conforme forem sendo concluídos</p>
+        </header>
+
+        <div class="client-info">
+            <div class="form-group">
+                <label for="client-name">Nome do Cliente:</label>
+                <input type="text" id="client-name" placeholder="Digite o nome completo do cliente">
+            </div>
+            <div class="form-group">
+                <label for="ac-number">Número da AC:</label>
+                <input type="text" id="ac-number" placeholder="Digite o número da AC">
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-text" id="progressText">0% concluído</div>
+
+        <div class="checklist" id="checklist">
+            <!-- Documentos de Identificação -->
+            <div class="checklist-item" data-item="documentos-identificacao">
+                <div class="item-header">
+                    <label class="item-title">
+                        <span class="checkbox-container">
+                            <input type="checkbox" id="documentos-identificacao">
+                            <span class="checkmark"></span>
+                        </span>
+                        Documentos de Identificação
+                    </label>
+                    <span class="status pending">Pendente</span>
+                </div>
+                <div class="comments-section">
+                    <label class="comments-label">Comentários (opcional):</label>
+                    <textarea class="comments-input" placeholder="Adicione observações sobre este item..."></textarea>
+                    <button class="save-btn">Salvar comentário</button>
+                </div>
+                <button class="toggle-comments">Adicionar comentários</button>
+            </div>
+
+            <!-- Simulação CEF -->
+            <div class="checklist-item" data-item="simulacao-cef">
+                <div class="item-header">
+                    <label class="item-title">
+                        <span class="checkbox-container">
+                            <input type="checkbox" id="simulacao-cef">
+                            <span class="checkmark"></span>
+                        </span>
+                        Simulação CEF
+                    </label>
+                    <span class="status pending">Pendente</span>
+                </div>
+                <div class="comments-section">
+                    <label class="comments-label">Comentários (opcional):</label>
+                    <textarea class="comments-input" placeholder="Adicione observações sobre este item..."></textarea>
+                    <button class="save-btn">Salvar comentário</button>
+                </div>
+                <button class="toggle-comments">Adicionar comentários</button>
+            </div>
+
+            <!-- Carta de cancelamento -->
+            <div class="checklist-item" data-item="carta-cancelamento">
+                <div class="item-header">
+                    <label class="item-title">
+                        <span class="checkbox-container">
+                            <input type="checkbox" id="carta-cancelamento">
+                            <span class="checkmark"></span>
+                        </span>
+                        Carta de cancelamento
+                    </label>
+                    <span class="status pending">Pendente</span>
+                </div>
+                <div class="comments-section">
+                    <label class="comments-label">Comentários (opcional):</label>
+                    <textarea class="comments-input" placeholder="Adicione observações sobre este item..."></textarea>
+                    <button class="save-btn">Salvar comentário</button>
+                </div>
+                <button class="toggle-comments">Adicionar comentários</button>
+            </div>
+
+            <!-- Certidão de Estado Civil -->
+            <div class="checklist-item" data-item="certidao-estado-civil">
+                <div class="item-header">
+                    <label class="item-title">
+                        <span class="checkbox-container">
+                            <input type="checkbox" id="certidao-estado-civil">
+                            <span class="checkmark"></span>
+                        </span>
+                        Certidão de Estado Civil
+                    </label>
+                    <span class="status pending">Pendente</span>
+                </div>
+                <div class="comments-section">
+                    <label class="comments-label">Comentários (opcional):</label>
+                    <textarea class="comments-input" placeholder="Adicione observações sobre este item..."></textarea>
+                    <button class="save-btn">Salvar comentário</button>
+                </div>
+                <button class="toggle-comments">Adicionar comentários</button>
+            </div>
+
+            <!-- Comprovante de Residencia -->
+            <div class="checklist-item" data-item="comprovante-residencia">
+                <div class="item-header">
+                    <label class="item-title">
+                        <span class="checkbox-container">
+                            <input type="checkbox" id="comprovante-residencia">
+                            <span class="checkmark"></span>
+                        </span>
+                        Comprovante de Residência
+                    </label>
+                    <span class="status pending">Pendente</span>
+                </div>
+                <div class="comments-section">
+                    <label class="comments-label">Comentários (opcional):</label>
+                    <textarea class="comments-input" placeholder="Adicione observações sobre este item..."></textarea>
+                    <button class="save-btn">Salvar comentário</button>
+                </div>
+                <button class="toggle-comments">Adicionar comentários</button>
+            </div>
+
+            <!-- Comprovante de Renda -->
+            <div class="checklist-item" data-item="comprovante-renda">
+                <div class="item-header">
+                    <label class="item-title">
+                        <span class="checkbox-container">
+                            <input type="checkbox" id="comprovante-renda">
+                            <span class="checkmark"></span>
+                        </span>
+                        Comprovante de Renda
+                    </label>
+                    <span class="status pending">Pendente</span>
+                </div>
+                <div class="comments-section">
+                    <label class="comments-label">Comentários (opcional):</label>
+                    <textarea class="comments-input" placeholder="Adicione observações sobre este item..."></textarea>
+                    <button class="save-btn">Salvar comentário</button>
+                </div>
+                <button class="toggle-comments">Adicionar comentários</button>
+            </div>
+
+            <!-- Carteira de Trabalho -->
+            <div class="checklist-item" data-item="carteira-trabalho">
+                <div class="item-header">
+                    <label class="item-title">
+                        <span class="checkbox-container">
+                            <input type="checkbox" id="carteira-trabalho">
+                            <span class="checkmark"></span>
+                        </span>
+                        Carteira de Trabalho
+                    </label>
+                    <span class="status pending">Pendente</span>
+                </div>
+                <div class="comments-section">
+                    <label class="comments-label">Comentários (opcional):</label>
+                    <textarea class="comments-input" placeholder="Adicione observações sobre este item..."></textarea>
+                    <button class="save-btn">Salvar comentário</button>
+                </div>
+                <button class="toggle-comments">Adicionar comentários</button>
+            </div>
+
+            <!-- Cópia do número PIS -->
+            <div class="checklist-item" data-item="copia-pis">
+                <div class="item-header">
+                    <label class="item-title">
+                        <span class="checkbox-container">
+                            <input type="checkbox" id="copia-pis">
+                            <span class="checkmark"></span>
+                        </span>
+                        Cópia do número PIS
+                    </label>
+                    <span class="status pending">Pendente</span>
+                </div>
+                <div class="comments-section">
+                    <label class="comments-label">Comentários (opcional):</label>
+                    <textarea class="comments-input" placeholder="Adicione observações sobre este item..."></textarea>
+                    <button class="save-btn">Salvar comentário</button>
+                </div>
+                <button class="toggle-comments">Adicionar comentários</button>
+            </div>
+
+            <!-- Declaração de Imposto de Renda ou Consulta de Isenção -->
+            <div class="checklist-item" data-item="declaracao-ir">
+                <div class="item-header">
+                    <label class="item-title">
+                        <span class="checkbox-container">
+                            <input type="checkbox" id="declaracao-ir">
+                            <span class="checkmark"></span>
+                        </span>
+                        Declaração de Imposto de Renda ou Consulta de Isenção
+                    </label>
+                    <span class="status pending">Pendente</span>
+                </div>
+                <div class="comments-section">
+                    <label class="comments-label">Comentários (opcional):</label>
+                    <textarea class="comments-input" placeholder="Adicione observações sobre este item..."></textarea>
+                    <button class="save-btn">Salvar comentário</button>
+                </div>
+                <button class="toggle-comments">Adicionar comentários</button>
+            </div>
+
+            <!-- Documentação do Fator Social -->
+            <div class="checklist-item" data-item="fator-social">
+                <div class="item-header">
+                    <label class="item-title">
+                        <span class="checkbox-container">
+                            <input type="checkbox" id="fator-social">
+                            <span class="checkmark"></span>
+                        </span>
+                        Documentação do Fator Social
+                    </label>
+                    <span class="status pending">Pendente</span>
+                </div>
+                <div class="comments-section">
+                    <label class="comments-label">Comentários (opcional):</label>
+                    <textarea class="comments-input" placeholder="Adicione observações sobre este item..."></textarea>
+                    <button class="save-btn">Salvar comentário</button>
+                </div>
+                <button class="toggle-comments">Adicionar comentários</button>
+            </div>
+        </div>
+
+        <button class="generate-summary" id="generateSummary">Gerar Resumo</button>
+
+        <div class="summary" id="summary">
+            <h2>Resumo do Checklist</h2>
+            <div id="summaryContent"></div>
+        </div>
+
+        <footer>
+            <p>Checklist atualizado em <span id="current-date"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Objeto para armazenar todos os dados
+            const checklistData = {
+                clientName: '',
+                acNumber: '',
+                items: {}
+            };
+
+            // Atualiza a data atual
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const currentDate = new Date().toLocaleDateString('pt-BR', options);
+            document.getElementById('current-date').textContent = currentDate;
+
+            // Configura os eventos dos campos de cliente
+            document.getElementById('client-name').addEventListener('input', function() {
+                checklistData.clientName = this.value;
+            });
+            
+            document.getElementById('ac-number').addEventListener('input', function() {
+                checklistData.acNumber = this.value;
+            });
+
+            // Configura os eventos dos checkboxes
+            const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                // Inicializa os dados do item
+                const itemId = checkbox.id;
+                checklistData.items[itemId] = {
+                    completed: false,
+                    comment: ''
+                };
+
+                checkbox.addEventListener('change', function() {
+                    updateItemStatus(this);
+                    checklistData.items[itemId].completed = this.checked;
+                });
+            });
+
+            // Configura os botões de comentários
+            const toggleButtons = document.querySelectorAll('.toggle-comments');
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', toggleComments);
+            });
+
+            // Configura os botões de salvar
+            const saveButtons = document.querySelectorAll('.save-btn');
+            saveButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemId = this.closest('.checklist-item').getAttribute('data-item');
+                    const comment = this.previousElementSibling.value;
+                    saveComments(this, itemId, comment);
+                });
+            });
+
+            // Configura o botão de gerar resumo
+            document.getElementById('generateSummary').addEventListener('click', generateSummary);
+
+            // Atualiza a barra de progresso
+            updateProgressBar();
+
+            function updateItemStatus(checkbox) {
+                const item = checkbox.closest('.checklist-item');
+                const statusElement = item.querySelector('.status');
+                
+                if (checkbox.checked) {
+                    item.classList.add('completed');
+                    item.classList.remove('pending');
+                    statusElement.textContent = 'Concluído';
+                    statusElement.classList.remove('pending');
+                    statusElement.classList.add('completed');
+                } else {
+                    item.classList.remove('completed');
+                    item.classList.add('pending');
+                    statusElement.textContent = 'Pendente';
+                    statusElement.classList.remove('completed');
+                    statusElement.classList.add('pending');
+                }
+                
+                updateProgressBar();
+            }
+
+            function toggleComments(e) {
+                const button = e.target;
+                const item = button.closest('.checklist-item');
+                const commentsSection = item.querySelector('.comments-section');
+                
+                commentsSection.classList.toggle('expanded');
+                
+                if (commentsSection.classList.contains('expanded')) {
+                    button.textContent = 'Ocultar comentários';
+                } else {
+                    button.textContent = 'Adicionar comentários';
+                }
+            }
+
+            function saveComments(button, itemId, comment) {
+                if (comment.trim() === '') {
+                    alert('Por favor, digite um comentário antes de salvar.');
+                    return;
+                }
+                
+                // Salva o comentário nos dados
+                checklistData.items[itemId].comment = comment;
+                
+                button.textContent = 'Salvo!';
+                setTimeout(() => {
+                    button.textContent = 'Salvar comentário';
+                }, 2000);
+            }
+
+            function updateProgressBar() {
+                const totalItems = checkboxes.length;
+                const completedItems = document.querySelectorAll('.checklist-item input[type="checkbox"]:checked').length;
+                const progressPercentage = Math.round((completedItems / totalItems) * 100);
+                
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressText');
+                
+                progressBar.style.width = progressPercentage + '%';
+                progressText.textContent = progressPercentage + '% concluído';
+                
+                // Muda a cor da barra de progresso baseado na porcentagem
+                if (progressPercentage < 30) {
+                    progressBar.style.backgroundColor = 'var(--error-color)';
+                } else if (progressPercentage < 70) {
+                    progressBar.style.backgroundColor = 'var(--pending-color)';
+                } else {
+                    progressBar.style.backgroundColor = 'var(--success-color)';
+                }
+            }
+
+            function generateSummary() {
+                const summaryElement = document.getElementById('summaryContent');
+                const summaryContainer = document.getElementById('summary');
+                let summaryHTML = '';
+                
+                // Adiciona informações do cliente
+                summaryHTML += `
+                    <div class="summary-item">
+                        <div class="summary-item-title">Cliente: ${checklistData.clientName || 'Não informado'}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-item-title">Número da AC: ${checklistData.acNumber || 'Não informado'}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-item-title">Progresso: ${document.getElementById('progressText').textContent}</div>
+                    </div>
+                `;
+                
+                // Adiciona cada item do checklist
+                const checklistItems = document.querySelectorAll('.checklist-item');
+                checklistItems.forEach(item => {
+                    const itemId = item.getAttribute('data-item');
+                    const itemTitle = item.querySelector('.item-title').textContent.trim();
+                    const isCompleted = item.querySelector('input[type="checkbox"]').checked;
+                    const comment = checklistData.items[itemId]?.comment || '';
+                    
+                    summaryHTML += `
+                        <div class="summary-item">
+                            <div class="summary-item-title">
+                                ${isCompleted ? '✓' : '✗'} ${itemTitle}
+                            </div>
+                            ${comment ? 
+                                `<div class="summary-item-comment">${comment}</div>` : 
+                                '<div class="summary-item-comment no-comment">Sem comentários</div>'}
+                        </div>
+                    `;
+                });
+                
+                summaryElement.innerHTML = summaryHTML;
+                summaryContainer.style.display = 'block';
+                
+                // Rolagem suave até o resumo
+                summaryContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+</html>
